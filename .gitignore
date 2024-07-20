@@ -34,6 +34,7 @@ Thumbs.db
 # Project specific
 data_set/dataset.csv  # Ignore the specific dataset file
 *.csv  # Ignore all other CSV files if you have multiple datasets
+data_set/dataset.csv
 
 # Ignore all .env files which might contain sensitive information
 *.env
