@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Welcome to Spotify Recommender</h1>
+{% if user.is_authenticated %}
+    <p>Hello, {{ user.username }}!</p>
+{% else %}
+    <p>Please log in or register to use the recommender.</p>
+{% endif %}
+{% endblock %}
