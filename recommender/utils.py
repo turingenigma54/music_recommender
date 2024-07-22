@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from django.conf import settings
 
-def load_and_preprocess_data(file_path):
+def load_and_preprocess_data():
     file_path = os.path.join(settings.BASE_DIR, 'data_set', 'dataset.csv')
     df = pd.read_csv(file_path)
 
