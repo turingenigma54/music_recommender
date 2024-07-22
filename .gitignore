@@ -47,6 +47,8 @@ data_set/dataset.csv
 
 # Backup files
 *.bak
+#.env
+.env
 
 # If using Jupyter Notebooks
 .ipynb_checkpoints
