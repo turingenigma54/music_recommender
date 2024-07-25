@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
-
 {% block content %}
-<h1>Welcome to Spotify Recommender</h1>
-{% if user.is_authenticated %}
-    <p>Hello, {{ user.username }}!</p>
-{% else %}
-    <p>Please log in or register to use the recommender.</p>
-{% endif %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Welcome to Spotify Recommender</h1>
+    <p class="lead">Discover new music based on your favorite tracks!</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Login</a>
+        <a href="{% url 'register' %}" class="btn btn-secondary btn-lg">Register</a>
+    {% endif %}
+</div>
 {% endblock %}

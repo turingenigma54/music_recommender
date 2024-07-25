@@ -1,16 +1,56 @@
 {% extends 'base.html' %}
 
+{% block title %}Recommendations for {{ selected_track.track_name }}{% endblock %}
+
 {% block content %}
-<h2>Recommendations based on: {{ selected_track.track_name }} by {{ selected_track.artists }}</h2>
+<div class="container mt-4">
+    <h1 class="mb-4">Recommendations</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Based on: {{ selected_track.track_name }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ selected_track.artists }}</h6>
+            <p class="card-text">Genre: {{ selected_track.track_genre }}</p>
+        </div>
+    </div>
 
-<ul>
-{% for track in recommended_tracks %}
-    <li>
-        {{ track.track_name }} by {{ track.artists }}
-        <a href="{% url 'recommendations' %}?track_id={{ track.id }}">Get Recommendations for this track</a>
-    </li>
-{% endfor %}
-</ul>
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for track in recommended_tracks %}
+            <div class="col">
+                <div class="card h-100 track-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ track.track_name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ track.artists }}</h6>
+                        <p class="card-text">Genre: {{ track.track_genre }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-outline-primary btn-sm">Get Recommendations</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p>No recommendations found.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
 
-<a href="{% url 'dashboard' %}">Back to Dashboard</a>
+{% block extra_css %}
+<style>
+    .track-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .track-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .card-body {
+        display: flex;
+        flex-direction: column;
+    }
+    .card-text {
+        flex-grow: 1;
+    }
+</style>
 {% endblock %}
