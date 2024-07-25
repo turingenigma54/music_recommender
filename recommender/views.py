@@ -13,7 +13,8 @@ def dashboard(request):
     if query:
         tracks = tracks.filter(
             Q(track_name__icontains=query) | 
-            Q(artists__icontains=query)
+            Q(artists__icontains=query) |
+            Q(track_genre__icontains=query)
         )
     
     paginator = Paginator(tracks, 20)  # Show 20 tracks per page
@@ -39,5 +40,6 @@ def recommendations(request):
     
     return render(request, 'recommender/recommendations.html', {
         'selected_track': track,
-        'recommended_tracks': recommended_tracks
+        'recommended_tracks': recommended_tracks,
+        'num_recommendations': len(recommended_tracks)
     })

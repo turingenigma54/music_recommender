@@ -13,25 +13,25 @@ def get_recommendations_from_db(track_name, n=20):
                 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
 
     # Get all tracks and their features
-    all_tracks = Track.objects.all().values('id', 'track_name', 'artists', *features)
+    all_tracks = Track.objects.exclude(id=track.id).values('id', 'track_name', 'artists', 'track_genre', *features)
     
     # Convert to a list of dictionaries
     tracks_list = list(all_tracks)
 
     # Extract features for similarity calculation
-    feature_matrix = np.array([[track[f] for f in features] for track in tracks_list])
+    feature_matrix = np.array([[t[f] for f in features] for t in tracks_list])
 
     # Normalize features
     scaler = MinMaxScaler()
     normalized_features = scaler.fit_transform(feature_matrix)
 
     # Calculate similarity
-    track_index = next(i for i, t in enumerate(tracks_list) if t['track_name'] == track_name)
-    track_features = normalized_features[track_index].reshape(1, -1)
-    similarities = cosine_similarity(track_features, normalized_features)[0]
+    track_features = np.array([getattr(track, f) for f in features]).reshape(1, -1)
+    track_features_normalized = scaler.transform(track_features)
+    similarities = cosine_similarity(track_features_normalized, normalized_features)[0]
 
     # Get indices of top N similar tracks
-    similar_indices = similarities.argsort()[::-1][1:n+1]
+    similar_indices = similarities.argsort()[::-1][:n]
 
     # Get the similar tracks
     recommendations = [tracks_list[i] for i in similar_indices]

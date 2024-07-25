@@ -4,7 +4,7 @@
 <h2>Welcome to the Music Recommender</h2>
 
 <form method="get" action="{% url 'dashboard' %}">
-    <input type="text" name="query" value="{{ query }}" placeholder="Search for a track or artist">
+    <input type="text" name="query" value="{{ query }}" placeholder="Search for a track, artist, or genre">
     <button type="submit">Search</button>
 </form>
 
@@ -13,6 +13,7 @@
         <tr>
             <th>Track Name</th>
             <th>Artist</th>
+            <th>Genre</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -21,9 +22,14 @@
         <tr>
             <td>{{ track.track_name }}</td>
             <td>{{ track.artists }}</td>
+            <td>{{ track.track_genre }}</td>
             <td>
                 <a href="{% url 'recommendations' %}?track_id={{ track.id }}">Get Recommendations</a>
             </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="4">No tracks found.</td>
         </tr>
     {% endfor %}
     </tbody>
