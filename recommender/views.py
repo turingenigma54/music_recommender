@@ -1,37 +1,43 @@
-from django.shortcuts import render
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .utils import df, get_recommendations_from_file
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Track
+from django.db.models import Q
+from .utils import get_recommendations_from_db
+from django.core.paginator import Paginator
 
-class HomeView(View):
-    def get(self, request):
-        return render(request, 'recommender/home.html')
+@login_required
+def dashboard(request):
+    query = request.GET.get('query', '')
+    tracks = Track.objects.all()
+    
+    if query:
+        tracks = tracks.filter(
+            Q(track_name__icontains=query) | 
+            Q(artists__icontains=query)
+        )
+    
+    paginator = Paginator(tracks, 20)  # Show 20 tracks per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'recommender/dashboard.html', {'page_obj': page_obj, 'query': query})
 
-class SearchView(LoginRequiredMixin, View):
-    def get(self, request):
-        query = request.GET.get('query', '')
-        matching_tracks = df[df['track_name'].str.contains(query, case=False)]['track_name'].tolist()
-        return render(request, 'recommender/search.html', {'tracks': matching_tracks, 'query': query})
-
-class RecommendationsView(LoginRequiredMixin, View):
-    def get(self, request):
-        track_name = request.GET.get('track_name')
-        if not track_name:
-            return render(request, 'recommender/recommendations.html', {'error': 'No track selected'})
-
-        recommendations = get_recommendations_from_file(track_name, df)
-        context = {
-            'input_track': track_name,
-            'recommendations': recommendations
-        }
-        return render(request, 'recommender/recommendations.html', context)
-
-class RandomRecommendationView(LoginRequiredMixin, View):
-    def get(self, request):
-        random_track = df['track_name'].sample().iloc[0]
-        recommendations = get_recommendations_from_file(random_track, df)
-        context = {
-            'input_track': random_track,
-            'recommendations': recommendations
-        }
-        return render(request, 'recommender/recommendations.html', context)
+@login_required
+def recommendations(request):
+    track_id = request.GET.get('track_id')
+    if not track_id:
+        return redirect('dashboard')
+    
+    try:
+        track = Track.objects.filter(id=track_id).first()
+        if not track:
+            return render(request, 'recommender/error.html', {'message': 'Track not found'})
+    except ValueError:
+        return render(request, 'recommender/error.html', {'message': 'Invalid track ID'})
+    
+    recommended_tracks = get_recommendations_from_db(track.track_name, n=20)
+    
+    return render(request, 'recommender/recommendations.html', {
+        'selected_track': track,
+        'recommended_tracks': recommended_tracks
+    })

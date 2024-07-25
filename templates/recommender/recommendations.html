@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Recommendations based on: {{ selected_track.track_name }} by {{ selected_track.artists }}</h2>
+
+<ul>
+{% for track in recommended_tracks %}
+    <li>
+        {{ track.track_name }} by {{ track.artists }}
+        <a href="{% url 'recommendations' %}?track_id={{ track.id }}">Get Recommendations for this track</a>
+    </li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'dashboard' %}">Back to Dashboard</a>
+{% endblock %}

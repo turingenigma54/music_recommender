@@ -1,32 +1,39 @@
-import os 
-import pandas as pd 
-from sklearn.metrics.pairwise import cosine_similarity
+from .models import Track
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from django.conf import settings
 
-def load_and_preprocess_data():
-    file_path = os.path.join(settings.BASE_DIR, 'data_set', 'dataset.csv')
-    df = pd.read_csv(file_path)
-
-    features = ['popularity', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
-                'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
-    scaler = MinMaxScaler()
-    df[features] = scaler.fit_transform(df[features])
-    return df
-
-def get_recommendations_from_file(track_name, df, n =5) :
-
-    track = df[df['track_name'] == track_name]
-    if track.empty:
+def get_recommendations_from_db(track_name, n=20):
+    try:
+        track = Track.objects.get(track_name=track_name)
+    except Track.DoesNotExist:
         return []
-    track = track.iloc[0]
+
     features = ['popularity', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
                 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
-    similarity = cosine_similarity(track[features], df[features])[0]
 
-    similar_indices = similarity.argsort()[::-1][1:n+1]
-    recommendations = df.iloc[similar_indices][['track_name', 'artist_name', 'album_name']]
-    return recommendations.to_dict('records')
-df = load_and_preprocess_data()
+    # Get all tracks and their features
+    all_tracks = Track.objects.all().values('id', 'track_name', 'artists', *features)
     
+    # Convert to a list of dictionaries
+    tracks_list = list(all_tracks)
+
+    # Extract features for similarity calculation
+    feature_matrix = np.array([[track[f] for f in features] for track in tracks_list])
+
+    # Normalize features
+    scaler = MinMaxScaler()
+    normalized_features = scaler.fit_transform(feature_matrix)
+
+    # Calculate similarity
+    track_index = next(i for i, t in enumerate(tracks_list) if t['track_name'] == track_name)
+    track_features = normalized_features[track_index].reshape(1, -1)
+    similarities = cosine_similarity(track_features, normalized_features)[0]
+
+    # Get indices of top N similar tracks
+    similar_indices = similarities.argsort()[::-1][1:n+1]
+
+    # Get the similar tracks
+    recommendations = [tracks_list[i] for i in similar_indices]
+
+    return recommendations
