@@ -1,33 +1,40 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Track
-from django.db.models import Q
+from django.core.cache import cache
+from django.db.models import Q, Count
 from .utils import get_recommendations_from_db
 from django.core.paginator import Paginator
-
+import hashlib
 @login_required
 def dashboard(request):
     query = request.GET.get('query', '')
     search_type = request.GET.get('search_type', 'track')
     selected_genre = request.GET.get('genre', '')
     
-    tracks = Track.objects.all()
+    search_params = f"{query}_{search_type}_{selected_genre}"
+    search_hash = hashlib.md5(search_params.encode()).hexdigest()
     
-    if query:
-        if search_type == 'track':
-            tracks = tracks.filter(track_name__icontains=query)
-        elif search_type == 'artist':
-            tracks = tracks.filter(artists__icontains=query)
-    
-    if selected_genre:
-        tracks = tracks.filter(track_genre=selected_genre)
+    tracks = cache.get(search_hash)
+    if tracks is None:
+        tracks = Track.objects.all()
+        if query:
+            if search_type == 'track':
+                tracks = tracks.filter(track_name__icontains=query)
+            elif search_type == 'artist':
+                tracks = tracks.filter(artists__icontains=query)
+        if selected_genre:
+            tracks = tracks.filter(track_genre=selected_genre)
+        tracks = list(tracks)
+        
+        cache.set(search_hash, tracks, 600)
     
     paginator = Paginator(tracks, 20)  # Show 20 tracks per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get unique genres for the dropdown
-    genres = Track.objects.values_list('track_genre', flat=True).distinct()
+    # Get unique genres, sorted alphabetically
+    genres = list(Track.objects.values_list('track_genre', flat=True).distinct().order_by('track_genre'))
     
     context = {
         'page_obj': page_obj,
@@ -38,7 +45,6 @@ def dashboard(request):
     }
     
     return render(request, 'recommender/dashboard.html', context)
-
 @login_required
 def recommendations(request):
     track_id = request.GET.get('track_id')
