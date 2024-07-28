@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Track
+from .models import Track , UserPlaylist
 from django.core.cache import cache
 from django.db.models import Q, Count
 from .utils import get_recommendations_from_db
@@ -72,3 +72,64 @@ def recommendations(request):
         'recommended_tracks': recommended_tracks,
         'num_recommendations': len(recommended_tracks)
     })
+from django.db.models import Count
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import UserPlaylist
+
+@login_required
+def user_playlists(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create':
+            playlist_name = request.POST.get('playlist_name')
+            if playlist_name:
+                UserPlaylist.objects.create(user=request.user, playlist_name=playlist_name)
+        elif action == 'delete':
+            playlist_name = request.POST.get('playlist_name')
+            if playlist_name:
+                UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name).delete()
+
+    playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').annotate(track_count=Count('track', distinct=True)).order_by('playlist_name')
+    return render(request, 'recommender/user_playlists.html', {'playlists': playlists})
+
+@login_required
+def playlist_detail(request, playlist_name):
+    playlist_tracks = UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name).select_related('track')
+    
+    if request.method == 'POST':
+        track_id = request.POST.get('track_id')
+        if track_id:
+            UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name, track_id=track_id).delete()
+            return redirect('playlist_detail', playlist_name=playlist_name)
+
+    context = {
+        'playlist_name': playlist_name,
+        'tracks': [item.track for item in playlist_tracks],
+        'playlist_id': playlist_tracks.first().id if playlist_tracks.exists() else None
+    }
+    return render(request, 'recommender/playlist_detail.html', context)
+
+@login_required
+def add_to_playlist(request, track_id):
+    track = get_object_or_404(Track, id=track_id)
+    user_playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').distinct()
+
+    if request.method == 'POST':
+        existing_playlists = request.POST.getlist('existing_playlists')
+        new_playlist_name = request.POST.get('new_playlist_name')
+
+        for playlist_name in existing_playlists:
+            UserPlaylist.objects.get_or_create(user=request.user, track=track, playlist_name=playlist_name)
+
+        if new_playlist_name:
+            UserPlaylist.objects.create(user=request.user, track=track, playlist_name=new_playlist_name)
+
+        return redirect('user_playlists')
+
+    return render(request, 'recommender/add_to_playlist.html', {'track': track, 'user_playlists': user_playlists})
+
+@login_required
+def remove_from_playlist(request, playlist_name, track_id):
+    UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name, track_id=track_id).delete()
+    return redirect('playlist_detail', playlist_name=playlist_name)

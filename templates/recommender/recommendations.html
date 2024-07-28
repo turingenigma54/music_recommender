@@ -16,25 +16,23 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
         {% for track in recommended_tracks %}
             <div class="col">
-                <div class="card h-100 track-card">
+                <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">{{ track.track_name }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ track.artists }}</h6>
                         <p class="card-text">Genre: {{ track.track_genre }}</p>
                     </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-outline-primary btn-sm">Get Recommendations</a>
+                    <div class="card-footer">
+                        <a href="{% url 'add_to_playlist' track.id %}" class="btn btn-primary btn-sm">Add to Playlist</a>
+                        <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-outline-secondary btn-sm">Get Recommendations</a>
                     </div>
                 </div>
             </div>
-        {% empty %}
-            <div class="col-12">
-                <p>No recommendations found.</p>
-            </div>
         {% endfor %}
     </div>
-</div>
-{% endblock %}
+    
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+    {% endblock %}
 
 {% block extra_css %}
 <style>
