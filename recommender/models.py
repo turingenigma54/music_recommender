@@ -26,7 +26,7 @@ class Track(models.Model):
 class UserPlaylist(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     playlist_name = models.CharField(max_length=255)
-    track = models.ForeignKey('Track', on_delete=models.CASCADE)
+    track = models.ForeignKey('Track', on_delete=models.CASCADE, null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
 
     class Meta:
