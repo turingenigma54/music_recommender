@@ -16,18 +16,20 @@
     {% if playlists %}
         <ul class="list-group">
         {% for playlist in playlists %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <a href="{% url 'playlist_detail' playlist.playlist_name %}">{{ playlist.playlist_name }}</a>
-                <div>
-                    <span class="badge bg-primary rounded-pill me-2">{{ playlist.track_count }} tracks</span>
-                    <form method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="playlist_name" value="{{ playlist.playlist_name }}">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                </div>
-            </li>
+            {% if playlist.playlist_name %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{% url 'playlist_detail' playlist.playlist_name %}">{{ playlist.playlist_name }}</a>
+                    <div>
+                        <span class="badge bg-primary rounded-pill me-2">{{ playlist.track_count }} tracks</span>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="playlist_name" value="{{ playlist.playlist_name }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            {% endif %}
         {% endfor %}
         </ul>
     {% else %}

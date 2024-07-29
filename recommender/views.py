@@ -90,7 +90,10 @@ def user_playlists(request):
             if playlist_name:
                 UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name).delete()
 
-    playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').annotate(track_count=Count('track', distinct=True)).order_by('playlist_name')
+    playlists = UserPlaylist.objects.filter(user=request.user)\
+                .values('playlist_name')\
+                .annotate(track_count=Count('track', distinct=True))\
+                .order_by('playlist_name')
     return render(request, 'recommender/user_playlists.html', {'playlists': playlists})
 
 @login_required
@@ -113,22 +116,37 @@ def playlist_detail(request, playlist_name):
 @login_required
 def add_to_playlist(request, track_id):
     track = get_object_or_404(Track, id=track_id)
-    user_playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').distinct()
+    user_playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').annotate(
+        track_count=Count('track')
+    ).distinct().order_by('playlist_name')
 
     if request.method == 'POST':
-        existing_playlists = request.POST.getlist('existing_playlists')
+        playlist_names = request.POST.getlist('existing_playlists')
         new_playlist_name = request.POST.get('new_playlist_name')
+        
+        for playlist_name in playlist_names:
+            if playlist_name.strip():  # Check if playlist_name is not empty after stripping whitespace
+                UserPlaylist.objects.get_or_create(
+                    user=request.user,
+                    playlist_name=playlist_name.strip(),
+                    track=track
+                )
 
-        for playlist_name in existing_playlists:
-            UserPlaylist.objects.get_or_create(user=request.user, track=track, playlist_name=playlist_name)
-
-        if new_playlist_name:
-            UserPlaylist.objects.create(user=request.user, track=track, playlist_name=new_playlist_name)
+        if new_playlist_name and new_playlist_name.strip():  # Check if new_playlist_name is not empty after stripping whitespace
+            UserPlaylist.objects.create(
+                user=request.user,
+                playlist_name=new_playlist_name.strip(),
+                track=track
+            )
 
         return redirect('user_playlists')
 
-    return render(request, 'recommender/add_to_playlist.html', {'track': track, 'user_playlists': user_playlists})
+    context = {
+        'track': track,
+        'user_playlists': user_playlists
+    }
 
+    return render(request, 'recommender/add_to_playlist.html', context)
 @login_required
 def remove_from_playlist(request, playlist_name, track_id):
     UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name, track_id=track_id).delete()
