@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Add "{{ track.track_name }}" to Playlist</h2>
+    <h2>Add "{{ track.name }}" to Playlist</h2>
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="track_id" value="{{ track.id }}">

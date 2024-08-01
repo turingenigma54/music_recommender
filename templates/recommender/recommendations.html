@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Recommendations for {{ selected_track.track_name }}{% endblock %}
+{% block title %}Recommendations for {{ selected_track.name }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <h1 class="mb-4">Recommendations</h1>
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Based on: {{ selected_track.track_name }}</h5>
+            <h5 class="card-title">Based on: {{ selected_track.name }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ selected_track.artists }}</h6>
-            <p class="card-text">Genre: {{ selected_track.track_genre }}</p>
+            <p class="card-text">Year: {{ track.year }}</p>
         </div>
     </div>
 
@@ -18,9 +18,9 @@
             <div class="col">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">{{ track.track_name }}</h5>
+                        <h5 class="card-title">{{ track.name }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ track.artists }}</h6>
-                        <p class="card-text">Genre: {{ track.track_genre }}</p>
+                        <p class="card-text">Year : {{ track.year }}</p>
                     </div>
                     <div class="card-footer">
                         <a href="{% url 'add_to_playlist' track.id %}" class="btn btn-primary btn-sm">Add to Playlist</a>

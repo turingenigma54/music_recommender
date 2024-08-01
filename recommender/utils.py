@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Track
+from .models import NewTrack
 import random
 
 class ImprovedRecommender:
@@ -15,10 +15,8 @@ class ImprovedRecommender:
 
     def _prepare_content_based(self):
         features = ['popularity', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
-                    'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
-        
-        self.tracks = list(Track.objects.all().values('id', 'track_name', 'artists', 'track_genre', *features))
-        
+                    'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'year']
+        self.tracks = list(NewTrack.objects.all().values('id', 'name', 'artists', *features))
         feature_matrix = np.array([[track[f] for f in features] for track in self.tracks])
         self.feature_matrix = self.scaler.fit_transform(feature_matrix)
 
@@ -47,13 +45,13 @@ def get_recommendations_from_db(track_name, artists, n=20):
     recommender.fit()
 
     try:
-        track = Track.objects.get(track_name=track_name, artists__icontains=artists.split(';')[0])
-    except Track.DoesNotExist:
-        print("No matching track found.")
+        track = NewTrack.objects.get(name=track_name, artists__icontains=artists.split(';')[0])
+    except NewTrack.DoesNotExist:
+        print(f"No track found with name '{track_name}' and artist '{artists}'")
         return []
-    except Track.MultipleObjectsReturned:
-        print("Multiple tracks found. Using the first one.")
-        track = Track.objects.filter(track_name=track_name, artists__icontains=artists.split(';')[0]).first()
+    except NewTrack.MultipleObjectsReturned:
+        print(f"Multiple tracks found for '{track_name}' by '{artists}'. Using the first one.")
+        track = NewTrack.objects.filter(name=track_name, artists__icontains=artists.split(';')[0]).first()
 
     recommendations = recommender.get_recommendations(track.id, n)
     return recommendations

@@ -10,29 +10,19 @@
                 <div class="card-body">
                     <h5 class="card-title">Advanced Search</h5>
                     <form method="get" action="{% url 'dashboard' %}">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <select name="search_type" class="form-select">
-                                    <option value="track" {% if search_type == 'track' %}selected{% endif %}>Track Name</option>
-                                    <option value="artist" {% if search_type == 'artist' %}selected{% endif %}>Artist</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="text" class="form-control" name="query" value="{{ query }}" placeholder="Enter search term">
-                            </div>
-                            <div class="col-md-4">
-                                <select name="genre" class="form-select">
-                                    <option value="">All Genres</option>
-                                    {% for genre in genres %}
-                                        <option value="{{ genre }}" {% if genre == selected_genre %}selected{% endif %}>{{ genre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <button class="btn btn-primary w-100" type="submit">Search</button>
-                            </div>
+                        <div class="input-group mb-3">
+                            <input type="text" name="query" class="form-control" placeholder="Search..." value="{{ query }}">
+                            <select name="search_type" class="form-select">
+                                <option value="track" {% if search_type == 'track' %}selected{% endif %}>Track</option>
+                                <option value="artist" {% if search_type == 'artist' %}selected{% endif %}>Artist</option>
+                            </select>
+                            <select name="year" class="form-select">
+                                <option value="">All Years</option>
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if selected_year|stringformat:"s" == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary" type="submit">Search</button>
                         </div>
                     </form>
                 </div>
@@ -46,10 +36,10 @@
         <div class="col">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">{{ track.track_name }}</h5>
+                    <h5 class="card-title">{{ track.name }}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">{{ track.artists }}</h6>
                     <p class="card-text">
-                        <strong>Genre:</strong> {{ track.track_genre }}<br>
+                        <strong>Year:</strong> {{ track.year }}<br>
                     </p>
                 </div>
                 <div class="card-footer bg-transparent border-top-0">
@@ -65,10 +55,10 @@
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page=1{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">First</a>
+                    <a class="page-link" href="?page=1{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">First</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">Previous</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Previous</a>
                 </li>
             {% endif %}
 
@@ -78,10 +68,10 @@
 
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">Next</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Next</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">Last</a>
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&query={{ query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Last</a>
                 </li>
             {% endif %}
         </ul>

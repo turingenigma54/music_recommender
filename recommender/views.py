@@ -1,47 +1,46 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Track , UserPlaylist
+from .models import NewTrack , UserPlaylist
 from django.core.cache import cache
 from django.db.models import Q, Count
 from .utils import get_recommendations_from_db
 from django.core.paginator import Paginator
 import hashlib
+import random
 @login_required
 def dashboard(request):
     query = request.GET.get('query', '')
     search_type = request.GET.get('search_type', 'track')
-    selected_genre = request.GET.get('genre', '')
+    selected_year = request.GET.get('year')
     
-    search_params = f"{query}_{search_type}_{selected_genre}"
-    search_hash = hashlib.md5(search_params.encode()).hexdigest()
+    tracks = NewTrack.objects.all()
     
-    tracks = cache.get(search_hash)
-    if tracks is None:
-        tracks = Track.objects.all()
-        if query:
-            if search_type == 'track':
-                tracks = tracks.filter(track_name__icontains=query)
-            elif search_type == 'artist':
-                tracks = tracks.filter(artists__icontains=query)
-        if selected_genre:
-            tracks = tracks.filter(track_genre=selected_genre)
-        tracks = list(tracks)
-        
-        cache.set(search_hash, tracks, 600)
+    if query:
+        if search_type == 'track':
+            tracks = tracks.filter(name__icontains=query)
+        elif search_type == 'artist':
+            tracks = tracks.filter(artists__icontains=query)
+    
+    if selected_year:
+        tracks = tracks.filter(year=selected_year)
+    
+    # Get all unique years for the dropdown
+    all_years = NewTrack.objects.values_list('year', flat=True).distinct().order_by('-year')
+    
+    # Randomly order the tracks
+    tracks = list(tracks)
+    random.shuffle(tracks)
     
     paginator = Paginator(tracks, 20)  # Show 20 tracks per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get unique genres, sorted alphabetically
-    genres = list(Track.objects.values_list('track_genre', flat=True).distinct().order_by('track_genre'))
-    
     context = {
         'page_obj': page_obj,
         'query': query,
         'search_type': search_type,
-        'selected_genre': selected_genre,
-        'genres': genres,
+        'years': all_years,
+        'selected_year': selected_year,
     }
     
     return render(request, 'recommender/dashboard.html', context)
@@ -54,9 +53,9 @@ def recommendations(request):
 
     print(f"Fetching track with ID: {track_id}")
     try:
-        track = Track.objects.get(id=track_id)
-        print(f"Found track: ID {track.id}, Name: {track.track_name}, Artists: {track.artists}")
-    except Track.DoesNotExist:
+        track = NewTrack.objects.get(id=track_id)
+        print(f"Found track: ID {track.id}, Name: {track.name}, Artists: {track.artists}")
+    except NewTrack.DoesNotExist:
         print(f"No track found with ID: {track_id}")
         return render(request, 'recommender/error.html', {'message': 'Track not found'})
     except ValueError:
@@ -64,7 +63,7 @@ def recommendations(request):
         return render(request, 'recommender/error.html', {'message': 'Invalid track ID'})
 
     print("Getting recommendations...")
-    recommended_tracks = get_recommendations_from_db(track.track_name, track.artists, n=20)
+    recommended_tracks = get_recommendations_from_db(track.name, track.artists, n=20)
 
     print(f"Rendering template with {len(recommended_tracks)} recommendations")
     return render(request, 'recommender/recommendations.html', {
@@ -120,27 +119,24 @@ def playlist_detail(request, playlist_name):
 
 @login_required
 def add_to_playlist(request, track_id):
-    track = get_object_or_404(Track, id=track_id)
-    user_playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').annotate(
-        track_count=Count('track')
-    ).distinct().order_by('playlist_name')
+    track = get_object_or_404(NewTrack, id=track_id)
+    user_playlists = UserPlaylist.objects.filter(user=request.user).values('playlist_name').distinct()
 
     if request.method == 'POST':
         playlist_names = request.POST.getlist('existing_playlists')
         new_playlist_name = request.POST.get('new_playlist_name')
         
         for playlist_name in playlist_names:
-            if playlist_name.strip():  # Check if playlist_name is not empty after stripping whitespace
-                UserPlaylist.objects.get_or_create(
-                    user=request.user,
-                    playlist_name=playlist_name.strip(),
-                    track=track
-                )
+            UserPlaylist.objects.get_or_create(
+                user=request.user,
+                playlist_name=playlist_name,
+                track=track
+            )
 
-        if new_playlist_name and new_playlist_name.strip():  # Check if new_playlist_name is not empty after stripping whitespace
+        if new_playlist_name:
             UserPlaylist.objects.create(
                 user=request.user,
-                playlist_name=new_playlist_name.strip(),
+                playlist_name=new_playlist_name,
                 track=track
             )
 

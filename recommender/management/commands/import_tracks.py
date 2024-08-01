@@ -25,7 +25,7 @@ class Command(BaseCommand):
                             defaults={
                                 'artists': row['artists'],
                                 'album_name': row['album_name'],
-                                'track_name': row['track_name'],
+                                'name': row['name'],
                                 'popularity': int(row['popularity']),
                                 'duration_ms': int(row['duration_ms']),
                                 'explicit': row['explicit'].lower() == 'true',
