@@ -83,22 +83,28 @@ def user_playlists(request):
         action = request.POST.get('action')
         if action == 'create':
             playlist_name = request.POST.get('playlist_name')
-            if playlist_name:
-                UserPlaylist.objects.create(user=request.user, playlist_name=playlist_name)
+            if playlist_name and playlist_name.strip():
+                # Create the playlist, but don't associate it with any track yet
+                UserPlaylist.objects.create(user=request.user, playlist_name=playlist_name.strip())
         elif action == 'delete':
             playlist_name = request.POST.get('playlist_name')
             if playlist_name:
                 UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name).delete()
 
+    # Fetch playlists and their track counts
     playlists = UserPlaylist.objects.filter(user=request.user)\
                 .values('playlist_name')\
                 .annotate(track_count=Count('track', distinct=True))\
                 .order_by('playlist_name')
+    
     return render(request, 'recommender/user_playlists.html', {'playlists': playlists})
-
 @login_required
 def playlist_detail(request, playlist_name):
-    playlist_tracks = UserPlaylist.objects.filter(user=request.user, playlist_name=playlist_name).select_related('track')
+    playlist_tracks = UserPlaylist.objects.filter(
+        user=request.user, 
+        playlist_name=playlist_name, 
+        track__isnull=False
+    ).select_related('track')
     
     if request.method == 'POST':
         track_id = request.POST.get('track_id')
@@ -109,7 +115,6 @@ def playlist_detail(request, playlist_name):
     context = {
         'playlist_name': playlist_name,
         'tracks': [item.track for item in playlist_tracks],
-        'playlist_id': playlist_tracks.first().id if playlist_tracks.exists() else None
     }
     return render(request, 'recommender/playlist_detail.html', context)
 

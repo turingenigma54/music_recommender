@@ -5,26 +5,26 @@
     <h2>{{ playlist_name }}</h2>
     {% if tracks %}
         <ul class="list-group">
-        {% for track in tracks %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ track.track_name }}</strong> - {{ track.artists }}
-                    <br>
-                    <small>Genre: {{ track.track_genre }}</small>
-                </div>
-                <div>
-                    <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-sm btn-outline-primary">Get Recommendations</a>
-                    <form method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="track_id" value="{{ track.id }}">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                    </form>
-                </div>
-            </li>
-        {% endfor %}
+            {% for track in tracks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ track.name }}</strong> - {{ track.artists }}
+                        <br>
+                        <small>Genre: {{ track.track_genre|default:"Unknown" }}</small>
+                    </div>
+                    <div>
+                        <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-sm btn-outline-primary">Get Recommendations</a>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="track_id" value="{{ track.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
         </ul>
     {% else %}
-        <p>This playlist is empty.</p>
+        <p>This playlist is empty. Add some tracks to get started!</p>
     {% endif %}
     <a href="{% url 'user_playlists' %}" class="btn btn-secondary mt-3">Back to Playlists</a>
 </div>
