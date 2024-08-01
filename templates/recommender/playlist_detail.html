@@ -10,7 +10,7 @@
                     <div>
                         <strong>{{ track.name }}</strong> - {{ track.artists }}
                         <br>
-                        <small>Genre: {{ track.track_genre|default:"Unknown" }}</small>
+                        <small>Year: {{ track.year|default:"Unknown" }}</small>
                     </div>
                     <div>
                         <a href="{% url 'recommendations' %}?track_id={{ track.id }}" class="btn btn-sm btn-outline-primary">Get Recommendations</a>
