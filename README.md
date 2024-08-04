@@ -22,18 +22,23 @@ A music recommendation system built with Django that suggests tracks based on us
 ## Installation
 
 1. Clone the repository:
-https://github.com/turingenigma54/spotify_recommender.git
+```
+git clone https://github.com/turingenigma54/spotify_recommender.git
+```
 
 2. Create a virtual environment and activate it:
+```
 python -m venv venv
 source venv/bin/activate  # On Windows use venv\Scripts\activate
-
+```
 3. Install the required packages:
+```
 pip install -r requirements.txt
-
+```
 4. Set up the database:
+```
 python manage.py migrate
-
+```
 5. Import track data:
 - Ensure you have the `data.csv` file containing track information in the project root.
 - Run the import script:
@@ -43,10 +48,13 @@ python manage.py migrate
 This step may take some time depending on the size of your dataset.
 
 6. Create a superuser:
+```
 python manage.py createsuperuser
-
+```
 7. Run the development server:
+```
 python manage.py runserver
+```
 
 ## Usage
 
