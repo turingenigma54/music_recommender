@@ -5,7 +5,7 @@ from recommender.views import dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
- path('accounts/', include('accounts.urls')),
+    path('accounts/', include('accounts.urls')),
     path('recommender/', include('recommender.urls')),
     path('', dashboard, name='home'),
     path('recommender/', include('recommender.urls')),
