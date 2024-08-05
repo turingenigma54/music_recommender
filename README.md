@@ -1,4 +1,4 @@
-# Spotify Recommender
+# Music Recommendation System
 
 A music recommendation system built with Django that suggests tracks based on user preferences and listening history.
 
