@@ -7,17 +7,16 @@ A music recommendation system built with Django that suggests tracks based on us
 - User authentication system
 - Personalized music recommendations
 - Playlist creation and management
-- Integration with Spotify API (if applicable)
 - Content-based filtering for track recommendations
 
 ## Technologies Used
 
-- Python 3.x
-- Django 3.x
+- Python 
+- Django 
 - NumPy
 - Scikit-learn
-- PostgreSQL (or your database of choice)
-- HTML/CSS/JavaScript (for frontend)
+- PostgreSQL 
+- HTML
 
 ## Installation
 
