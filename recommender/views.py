@@ -5,7 +5,6 @@ from django.core.cache import cache
 from django.db.models import Q, Count
 from .utils import get_recommendations_from_db
 from django.core.paginator import Paginator
-import hashlib
 import random
 @login_required
 def dashboard(request):
@@ -71,10 +70,7 @@ def recommendations(request):
         'recommended_tracks': recommended_tracks,
         'num_recommendations': len(recommended_tracks)
     })
-from django.db.models import Count
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .models import UserPlaylist
+
 
 @login_required
 def user_playlists(request):
